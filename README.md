@@ -1,21 +1,25 @@
-DKIM SPF Verification Tool
+#  DKIM SPF Verification Tool
 
-Description of Tool: This is a tool to validate a raw email message for DKIM & SPF check verification.
-The tool is written on NodeJs Express framework which internally utilizes Python to run dkimpy & pyspf commands.
+### Description of Tool:
+This is a tool to validate a raw email meassage for DKIM & SPF verification.
+This is written on NodeJs Express framework which internally utilizes Python to run dkimpy & pyspf commands.
 The tool is tested on macos using Webstorm, also tested using standalone npm start.
 
-The Problem and initial approach: Initially I was trying to validate DKIM by reading 4 header values:
-b = Signature
-bh = Email hash
-and by obtaining the public_key from dig [s header]._domainkey.[d header]. txt +nostats +noquestion  
+### The Problem and initial approach:
+Initially I was trying to validate DKIM by reading 4 header values:
+- b = Signature
+- bh = Email hash
+and by obtaining the public_key from 
+- dig [s header]._domainkey.[d header]. txt +nostats +noquestion  
+
 I tried a lot to use this public key to validate the signature, but it never worked:
 openssl dgst -sha256 -verify public_key -signature b bh
-This is the same case with SPF I was able to pull the hashes:
+This is the same case with SPF, I was able to pull the hashes:
 dig +short -t txt [d header]
 but again was not able to verify it against the public key.
 
-Final Solution:
-So ultimately I changed my approach to use python packages, Below is the description how this app works:
+### Final Solution:
+So, ultimately I changed my approach to use python packages, Below is the description how this app works:
 
 1. On initialization app.js installs the python packages if not already present:
    const shell = require('shelljs')
@@ -31,11 +35,14 @@ So ultimately I changed my approach to use python packages, Below is the descrip
    }else{
    shell.exec('yes | pip install pyspf')
    }
+  
 2. index.js is the backend api for index.pug ui.
 3. When user hits the default url [http://localhost:3000/], User is presented with a screen to fill in raw email message.
 4. The submit button calls the backend index.js which does the following:
-    1. Code checks for spf=pass and dkim=pass headers added by email service provider. If not present then it directly fails the validation.
-    2. If primary check passed then it verifies the DKIM signature:
+    
+    4.1. Code checks for spf=pass and dkim=pass headers added by email service provider. If not present then it directly fails the validation.
+    
+    4.2. If primary check passed then it verifies the DKIM signature:
        const fs = require('fs');
        let file_name = Math.random()+'email.eml'
        const message = fs.writeFileSync(file_name, body);
@@ -46,7 +53,8 @@ So ultimately I changed my approach to use python packages, Below is the descrip
        }
        fs.unlinkSync(file_name);
     ==>> in case of failure it fails the validation
-   3. If primary check passed then it verifies the SPF check:
+    
+    4.3. If primary check passed then it verifies the SPF check:
       let r = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/;
       let ip = parsed.headers.get('x-originating-ip').match(r)[0];
       r = /<(.*)>/g;
@@ -69,7 +77,8 @@ So ultimately I changed my approach to use python packages, Below is the descrip
       console.log(spf_pass)
       console.log(dkim_pass)
    ==>> in case of failure it fails the validation
-    4. Based on the validation results, The UI updates the user one of the below results:
+   
+    4.4. Based on the validation results, The UI updates the user one of the below results:
        if(dkim_pass && spf_pass){
        msg = "DKIM & SPF Header check passed!"
        res.render('index', {messagePassed: msg});
@@ -86,3 +95,19 @@ So ultimately I changed my approach to use python packages, Below is the descrip
        msg = "DKIM & SPF Header check failed!"
        res.render('index', {messageFailed: msg});
        }
+### How to run this tool from the code
+
+``` 
+git clone https://github.com/lalita-tiwari/email-security-check.git
+cd email-security-check
+
+email-security-check % npm start 
+```
+ 
+The above command will install the packages dkimpy and pyspf and you will see a below message like this.
+``` 
+Successfully built dkimpy
+Successfully built pyspf
+Installing collected packages: pyspf
+Successfully installed pyspf-2.0.14
+```
