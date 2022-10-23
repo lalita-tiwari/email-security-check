@@ -111,3 +111,7 @@ Successfully built pyspf
 Installing collected packages: pyspf
 Successfully installed pyspf-2.0.14
 ```
+
+Go to the link to validate SPF and DKIM: 
+
+http://localhost:3000
