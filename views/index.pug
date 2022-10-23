@@ -1,0 +1,17 @@
+extends layout
+
+block content
+  h1= title
+
+
+    p Please copy the raw email content on below box:
+    <form action="/email_url/" method="post">
+    <textarea id="area" name="area" style="width:600px;height:600px"></textarea>
+    <button type="submit">Submit</button>
+  </form>
+  <div style="color:red">
+  label= messageFailed
+  </div>
+  <div style="color:green">
+  label= messagePassed
+  </div>
